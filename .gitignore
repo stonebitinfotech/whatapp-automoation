@@ -13,4 +13,11 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Auth data
+auth/
 
