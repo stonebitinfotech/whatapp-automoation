@@ -12,13 +12,19 @@ if (openaiKey &&
     openaiKey.startsWith('sk-')) {
   const OpenAI = require('openai');
   openai = new OpenAI({ apiKey: openaiKey });
-  console.log('✅ OpenAI API configured');
-} else {
-  console.log('ℹ️ OpenAI API not configured (using free alternatives)');
 }
 
 // Store user menu states (in production, use a database)
 const userMenuStates = new Map();
+
+// Contact information
+const CONTACT_PHONE = '+919426514470';
+const CONTACT_EMAIL = 'contact@stonebitinfotech.com';
+
+// Function to append AI disclaimer to all responses
+function addAIDisclaimer(text) {
+  return `${text}\n\n_*Note: This chat is AI generated*_`;
+}
 
 // Main menu categories
 const mainMenu = {
@@ -139,9 +145,8 @@ Type "menu" to go back.` }
 We're connecting you with a live support agent. Please wait while we transfer your request.
 
 An agent will respond to you shortly. In the meantime, you can:
-- Email: support@alphalions.com
-- Phone: [Your Support Number]
-- Website: [Your Website]
+- Email: ${CONTACT_EMAIL}
+- Phone: ${CONTACT_PHONE}
 
 Your request has been logged. Thank you for your patience! 🙏
 
@@ -203,8 +208,8 @@ Type "menu" to go back.` },
 Your request has been marked as URGENT and prioritized!
 
 A senior agent will contact you immediately. For urgent matters:
-- Call: [Urgent Support Number]
-- Email: urgent@alphalions.com
+- Call: ${CONTACT_PHONE}
+- Email: ${CONTACT_EMAIL}
 
 Please provide:
 - Your account details
@@ -737,7 +742,7 @@ Type "menu" to go back.` }
 
 // Function to show main menu
 function getMainMenu() {
-  return `👋 *Hello! How can we help you today?*
+  return addAIDisclaimer(`👋 *Hello! How can we help you today?*
 
 Please select a category by typing the number:
 
@@ -749,7 +754,7 @@ Please select a category by typing the number:
 *6️⃣* - Payment / Top-up Issues
 *7️⃣* - App Issues
 
-*Type the number (1-7) to select a category*`;
+*Type the number (1-7) to select a category*`);
 }
 
 // Function to show sub-menu
@@ -765,7 +770,7 @@ function getSubMenu(category) {
   
   menu += `\n*Type the number to select an option*\n*Type "back" to go to main menu*`;
   
-  return menu;
+  return addAIDisclaimer(menu);
 }
 
 // Function to handle menu selection
@@ -799,7 +804,7 @@ function handleMenuSelection(userMessage, senderNumber) {
       userMenuStates.set(senderNumber, 'main'); // Reset to main after showing response
       return { 
         type: 'response', 
-        content: categoryData.subMenu[message].response 
+        content: addAIDisclaimer(categoryData.subMenu[message].response)
       };
     }
   }
@@ -876,9 +881,7 @@ client.on('qr', (qr) => {
 
 // When client is ready
 client.on('ready', () => {
-  console.log('✅ WhatsApp client is ready!');
-  console.log('🤖 AI Assistant is active and listening for messages...');
-  console.log('💡 Using free AI APIs: Groq → Hugging Face → Gemini → Keyword Fallback');
+  // Client ready
 });
 
 // When authentication is successful
@@ -911,14 +914,10 @@ client.on('message', async (message) => {
     const senderName = contact.pushname || contact.number;
     const senderNumber = contact.number;
 
-    console.log(`\n📨 New message from ${senderName} (${senderNumber}):`);
-    console.log(`   "${userMessage}"`);
-
     // Check if it's a help request and show main menu
     if (isHelpRequest(userMessage)) {
       userMenuStates.set(senderNumber, 'main');
       await message.reply(getMainMenu());
-      console.log(`✅ Showed main menu`);
       return;
     }
 
@@ -926,27 +925,21 @@ client.on('message', async (message) => {
     const menuResponse = handleMenuSelection(userMessage, senderNumber);
     if (menuResponse) {
       await message.reply(menuResponse.content);
-      if (menuResponse.type === 'menu') {
-        console.log(`✅ Showed ${menuResponse.type} menu`);
-      } else {
-        console.log(`✅ Replied with menu option response`);
-      }
       return;
     }
 
     // Generate AI response with fallback chain
     const aiResponse = await generateAIResponse(userMessage, senderName);
 
-    // Send response
-    await message.reply(aiResponse);
-    console.log(`✅ Replied: "${aiResponse}"`);
+    // Send response with AI disclaimer
+    await message.reply(addAIDisclaimer(aiResponse));
 
   } catch (error) {
     console.error('❌ Error handling message:', error);
     
     // Send error message to user
     try {
-      await message.reply('Sorry, I encountered an error. Please try again later or contact support.');
+      await message.reply(addAIDisclaimer(`Sorry, I encountered an error. Please try again later or contact us at ${CONTACT_EMAIL} or ${CONTACT_PHONE}.`));
     } catch (replyError) {
       console.error('❌ Error sending error message:', replyError);
     }
@@ -963,6 +956,10 @@ Your role is to:
 - Be professional, concise, and helpful
 - If you don't know something, politely direct them to contact support
 
+Contact Information:
+- Email: ${CONTACT_EMAIL}
+- Phone: ${CONTACT_PHONE}
+
 Keep responses brief (2-3 sentences max) and conversational, as this is WhatsApp messaging.`;
 
   // Try OpenAI first (if configured)
@@ -977,14 +974,10 @@ Keep responses brief (2-3 sentences max) and conversational, as this is WhatsApp
         max_tokens: 150,
         temperature: 0.7
       });
-      console.log('🤖 Response from: OpenAI');
-      return completion.choices[0].message.content.trim();
+      const response = completion.choices[0].message.content.trim();
+      return response;
     } catch (error) {
-      if (error.status === 429 || error.type === 'insufficient_quota') {
-        console.log('⚠️ OpenAI quota exceeded, trying free alternatives...');
-      } else {
-        console.log('⚠️ OpenAI error, trying free alternatives...');
-      }
+      // Try next option
     }
   }
 
@@ -1006,11 +999,10 @@ Keep responses brief (2-3 sentences max) and conversational, as this is WhatsApp
           'Content-Type': 'application/json'
         }
       });
-      console.log('🤖 Response from: Groq (FREE)');
       return response.data.choices[0].message.content.trim();
     }
   } catch (error) {
-    console.log('⚠️ Groq API unavailable, trying next option...');
+    // Try next option
   }
 
   // Try Hugging Face Inference API (FREE - No key needed)
@@ -1035,7 +1027,6 @@ Keep responses brief (2-3 sentences max) and conversational, as this is WhatsApp
     );
     
     if (response.data && response.data[0] && response.data[0].generated_text) {
-      console.log('🤖 Response from: Hugging Face (FREE)');
       return response.data[0].generated_text.trim();
     }
   } catch (error) {
@@ -1059,11 +1050,10 @@ Keep responses brief (2-3 sentences max) and conversational, as this is WhatsApp
       );
       
       if (response.data && response.data[0] && response.data[0].generated_text) {
-        console.log('🤖 Response from: Hugging Face (FREE - Alternative Model)');
         return response.data[0].generated_text.trim();
       }
     } catch (error2) {
-      console.log('⚠️ Hugging Face API unavailable, trying next option...');
+      // Try next option
     }
   }
 
@@ -1078,15 +1068,13 @@ Keep responses brief (2-3 sentences max) and conversational, as this is WhatsApp
       const prompt = `${systemPrompt}\n\nCustomer message: ${userMessage}\n\nProvide a helpful response:`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
-      console.log('🤖 Response from: Google Gemini (FREE)');
       return response.text().trim();
     }
   } catch (error) {
-    console.log('⚠️ Gemini API unavailable, using keyword fallback...');
+    // Use keyword fallback
   }
 
   // Final fallback: Keyword-based responses
-  console.log('🤖 Response from: Keyword Fallback');
   return generateFallbackResponse(userMessage);
 }
 
@@ -1101,27 +1089,27 @@ function generateFallbackResponse(userMessage) {
   
   // Tournament inquiries
   if (message.match(/\b(tournament|tourney|competition|event|match|game)\b/)) {
-    return 'Thanks for your interest in our tournaments! For tournament details, schedules, and registration, please visit our website or contact our support team directly.';
+    return `Thanks for your interest in our tournaments! For tournament details, schedules, and registration, please contact us at ${CONTACT_EMAIL} or ${CONTACT_PHONE}.`;
   }
   
   // Registration inquiries
   if (message.match(/\b(register|sign up|join|participate|entry|apply)\b/)) {
-    return 'To register for our tournaments or events, please visit our official website or contact our registration team. We\'d be happy to help you get started!';
+    return `To register for our tournaments or events, please contact us at ${CONTACT_EMAIL} or ${CONTACT_PHONE}. We'd be happy to help you get started!`;
   }
   
   // Schedule/time inquiries
   if (message.match(/\b(schedule|time|when|date|timing|start|begin)\b/)) {
-    return 'For the latest schedules and event timings, please check our website or social media pages. For specific details, feel free to ask!';
+    return `For the latest schedules and event timings, please contact us at ${CONTACT_EMAIL} or ${CONTACT_PHONE}. For specific details, feel free to ask!`;
   }
   
   // Team/player inquiries
   if (message.match(/\b(team|player|roster|squad|member)\b/)) {
-    return 'Thanks for your interest in Alpha Lions Esport! For information about our teams and players, visit our website or follow us on social media.';
+    return `Thanks for your interest in Alpha Lions Esport! For information about our teams and players, contact us at ${CONTACT_EMAIL} or ${CONTACT_PHONE}.`;
   }
   
   // Help/support inquiries
   if (message.match(/\b(help|support|assist|problem|issue|question)\b/)) {
-    return 'I\'m here to help! Please let me know what you need assistance with, and I\'ll do my best to help you.';
+    return `I'm here to help! For direct support, contact us at ${CONTACT_EMAIL} or ${CONTACT_PHONE}. Please let me know what you need assistance with.`;
   }
   
   // Thank you responses
@@ -1131,9 +1119,9 @@ function generateFallbackResponse(userMessage) {
   
   // Default fallback
   const defaultResponses = [
-    'Thank you for contacting Alpha Lions Esport! Our team will get back to you shortly. How can I help you today?',
-    'Hello! Thanks for reaching out. I\'m here to assist you with any questions about Alpha Lions Esport.',
-    'Hi! Welcome to Alpha Lions Esport. What would you like to know?'
+    `Thank you for contacting Alpha Lions Esport! For direct support, contact us at ${CONTACT_EMAIL} or ${CONTACT_PHONE}. How can I help you today?`,
+    `Hello! Thanks for reaching out. I'm here to assist you with any questions about Alpha Lions Esport. For direct support, contact ${CONTACT_EMAIL} or ${CONTACT_PHONE}.`,
+    `Hi! Welcome to Alpha Lions Esport. What would you like to know? For direct support, contact ${CONTACT_EMAIL} or ${CONTACT_PHONE}.`
   ];
   
   return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
@@ -1141,12 +1129,10 @@ function generateFallbackResponse(userMessage) {
 
 // Handle disconnection
 client.on('disconnected', (reason) => {
-  console.log('❌ Client was disconnected:', reason);
-  console.log('🔄 Attempting to reconnect...');
+  // Client disconnected, will attempt to reconnect
 });
 
 // Initialize client
-console.log('🚀 Starting Alpha Lions WhatsApp AI Assistant...');
 client.initialize();
 
 // Graceful shutdown
