@@ -1,0 +1,76 @@
+{
+  "organization": {
+    "name": "Alpha Lions Esport",
+    "description": "Professional esports organization",
+    "website": "https://alphalions.com",
+    "socialMedia": {
+      "twitter": "@AlphaLionsEsport",
+      "instagram": "@alphalionsesport",
+      "facebook": "AlphaLionsEsport"
+    }
+  },
+  "teams": [
+    {
+      "name": "Main Team",
+      "game": "Valorant",
+      "players": [
+        {
+          "name": "Player1",
+          "role": "Duelist",
+          "ign": "AL_Player1",
+          "bio": "Experienced duelist player",
+          "achievements": []
+        },
+        {
+          "name": "Player2",
+          "role": "Controller",
+          "ign": "AL_Player2",
+          "bio": "Strategic controller specialist",
+          "achievements": []
+        }
+      ]
+    }
+  ],
+  "players": [
+    {
+      "name": "Player1",
+      "ign": "AL_Player1",
+      "role": "Duelist",
+      "team": "Main Team",
+      "game": "Valorant",
+      "bio": "Experienced duelist player known for aggressive plays",
+      "achievements": [],
+      "socialMedia": {}
+    },
+    {
+      "name": "Player2",
+      "ign": "AL_Player2",
+      "role": "Controller",
+      "team": "Main Team",
+      "game": "Valorant",
+      "bio": "Strategic controller specialist",
+      "achievements": [],
+      "socialMedia": {}
+    }
+  ],
+  "tournaments": [
+    {
+      "name": "Upcoming Tournament",
+      "date": "TBA",
+      "status": "Upcoming",
+      "description": "Details coming soon"
+    }
+  ],
+  "faq": [
+    {
+      "question": "How can I join Alpha Lions Esport?",
+      "answer": "For joining opportunities, please contact us through our official channels or website."
+    },
+    {
+      "question": "When is the next tournament?",
+      "answer": "Check our website and social media for the latest tournament schedules."
+    }
+  ]
+}
+
+
