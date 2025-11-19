@@ -1,12 +1,6 @@
 # Dependencies
 node_modules/
 
-# Environment variables
-.env
-
-# WhatsApp session data
-auth/
-
 # Logs
 *.log
 npm-debug.log*

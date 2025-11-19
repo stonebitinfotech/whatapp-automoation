@@ -110,11 +110,93 @@ Use tools like:
 
 ---
 
+## 🐧 Linux Server Setup
+
+### Installing Required Dependencies
+
+If you're running on a Linux server and getting Puppeteer/Chromium errors, you need to install system dependencies:
+
+**For Debian/Ubuntu:**
+```bash
+# Make the script executable
+chmod +x install-linux-deps.sh
+
+# Run the installation script
+./install-linux-deps.sh
+```
+
+**Or install manually (Debian/Ubuntu):**
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+    ca-certificates \
+    fonts-liberation \
+    libappindicator3-1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libc6 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libexpat1 \
+    libfontconfig1 \
+    libgbm1 \
+    libgcc1 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstdc++6 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    lsb-release \
+    wget \
+    xdg-utils
+```
+
+**For CentOS/RHEL/Fedora:**
+```bash
+# Fedora
+sudo dnf install -y alsa-lib atk cups-libs gtk3 libXcomposite libXcursor libXdamage libXext libXi libXrandr libXScrnSaver libXtst pango
+
+# CentOS/RHEL
+sudo yum install -y alsa-lib atk cups-libs gtk3 libXcomposite libXcursor libXdamage libXext libXi libXrandr libXScrnSaver libXtst pango
+```
+
+### Common Linux Errors
+
+**Error: `libatk-1.0.so.0: cannot open shared object file`**
+- Solution: Run `./install-linux-deps.sh` or install dependencies manually (see above)
+
+**Error: `Failed to launch the browser process`**
+- Solution: Install all required system dependencies
+- Make sure you're running on a system with a display server (or use headless mode)
+
+**Error: `No usable sandbox`**
+- Solution: The Puppeteer config already includes `--no-sandbox` flag, which should handle this
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Bot not starting?
 - Check if Node.js is installed: `node --version`
 - Make sure all dependencies are installed: `npm install`
+- **On Linux:** Install system dependencies (see Linux Server Setup above)
 - Check for errors in terminal
 
 ### QR Code not appearing?
@@ -126,6 +208,11 @@ Use tools like:
 - Check console for error messages
 - Verify API keys in `.env` file
 - Make sure WhatsApp session is active
+
+### Puppeteer/Chromium errors on Linux?
+- Run `./install-linux-deps.sh` to install required system libraries
+- Check the error message for missing library names
+- Ensure you have sufficient disk space and memory
 
 ### Want to restart?
 - Stop bot (Ctrl+C)
